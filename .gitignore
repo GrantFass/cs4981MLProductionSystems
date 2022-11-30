@@ -1,5 +1,6 @@
 # folders
 email_json_dataset1/
+.idea
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
