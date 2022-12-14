@@ -1,81 +1,15 @@
-from flask import Flask, request, jsonify
-import datetime
-import json
-import os
-from dotenv import load_dotenv
-import psycopg2
+from flask import Flask, request
 import structlog
-import logging
 
-load_dotenv()
-
-def get_db_connection():
-    host=os.getenv('POSTGRES_HOST')
-    database=os.getenv('POSTGRES_DATABASE')
-    user=os.getenv('POSTGRES_USERNAME')
-    password=os.getenv('POSTGRES_PASSWORD')
-    port = os.getenv('POSTGRES_PORT')
-
-    # TODO: crash if null
-
-    conn = psycopg2.connect(
-            host=host,
-            database=database,
-            user=user,
-            password=password,
-            port = port)
-    return conn
-
-with open("log_file.json", "wt", encoding="utf-8") as log_fl:
-    structlog.configure(
-    processors=[structlog.processors.TimeStamper(fmt="iso"),
-    structlog.processors.JSONRenderer()],
-    logger_factory=structlog.WriteLoggerFactory(file=log_fl))
 app = Flask(__name__)
-# api = Api(app);
 
-
-
-@app.route('/email', methods=['POST'])#, methods=['POST']
-def post():
-    conn = get_db_connection()
-    cur = conn.cursor()
-    data = request.data.decode('utf-8')
-    print(data)
-    data = json.loads(data)
-    timestamp = datetime.datetime.now()
-    user_to = data['to']
-    user_from = data['from']
-    user_subject = data['subject']
-    user_body = data['body']
-    email_object = {
-        "to": user_to,
-        "from": user_from,
-        "subject": user_subject,
-        "body": user_body
-    }
-    json_email_object = json.dumps(email_object)
-    cur.execute('INSERT INTO emails (received_timestamp, email_object) VALUES (%s, %s);', (timestamp, json_email_object))
-    conn.commit()
-    cur.close()
-    return jsonify({'status': 200})
 
 # GET /mailbox/email/<email_id:int>
 # Returns a JSON object with the key "email" and an associated value of a String containing the entire email text
-@app.route('/mailbox/email/<int:email_id>')
-def get_email(email_id):
-    with open("log_file.json", "wt", encoding="utf-8") as log_fl:
-        structlog.configure(
-        processors=[structlog.processors.TimeStamper(fmt="iso"),
-        structlog.processors.JSONRenderer()],
-        logger_factory=structlog.WriteLoggerFactory(file=log_fl))
-        logger = structlog.get_logger()
-        logger.info(event="email::id::folder::put", email_id=email_id)
-    # structlog.stdlib.recreate_defaults(log_level=None)
-    # structlog.dev.ConsoleRenderer(colors=False)
-    # logging.basicConfig(format="%(message)s", filename='log_file.json', encoding='utf-8', level=logging.INFO)
-    #logger.info(event="email::id::put", email_id=email_id)
-    return jsonify({'status': 200})
+@app.route('/mailbox/email/')
+def get_email():
+    logger = structlog.get_logger()
+    logger.info(event="email::id::folder::put", email_id=email_id, folder=folder)
 
 # GET /mailbox/email/<email_id:int>/folder
 # Get the folder containing the given email.  Examples of folders include "Inbox", "Archive", "Trash", and "Sent".
@@ -129,7 +63,6 @@ def delete_email_label():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8888)
     with open("log_file.json", "wt", encoding="utf-8") as log_fl:
         structlog.configure(
         processors=[structlog.processors.TimeStamp(fmt="iso"),
