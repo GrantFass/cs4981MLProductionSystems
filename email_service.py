@@ -7,7 +7,7 @@ import psycopg2
 import structlog
 
 load_dotenv()
-
+# testing
 def get_db_connection():
     host=os.getenv('POSTGRES_HOST')
     database=os.getenv('POSTGRES_DATABASE')
