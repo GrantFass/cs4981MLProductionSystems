@@ -8,6 +8,8 @@ import structlog
 
 load_dotenv()
 
+idx = 0
+
 def get_db_connection():
     host=os.getenv('POSTGRES_HOST')
     database=os.getenv('POSTGRES_DATABASE')
@@ -34,13 +36,14 @@ app = Flask(__name__)
 # api = Api(app);
 
 
+conn = get_db_connection()
 
 @app.route('/email', methods=['POST'])#, methods=['POST']
 def post():
-    conn = get_db_connection()
+    global idx, conn
     cur = conn.cursor()
     data = request.data.decode('utf-8')
-    print(data)
+    # print(data)
     data = json.loads(data)
     timestamp = datetime.datetime.now()
     user_to = data['to']
@@ -57,7 +60,8 @@ def post():
     cur.execute('INSERT INTO emails (received_timestamp, email_object) VALUES (%s, %s);', (timestamp, json_email_object))
     conn.commit()
     cur.close()
-    return jsonify({'status': 200})
+    idx += 1 # TODO: fixme
+    return jsonify({'email_id': idx})
 
 # GET /mailbox/email/<email_id:int>
 # Returns a JSON object with the key "email" and an associated value of a String containing the entire email text
