@@ -63,25 +63,19 @@ def post():
 # Returns a JSON object with the key "email" and an associated value of a String containing the entire email text
 @app.route('/mailbox/email/<int:email_id>',  methods=['GET'])
 def get_email(email_id):
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute('SELECT * FROM emails WHERE email_id = %s', [email_id])
-    data = cur.fetchall()
     logger = structlog.get_logger()
-    logger.info(event="email::id", email_id=email_id)
-    return jsonify({'email': data})
+    logger.info(event="email::id::get", email_id=email_id)
+    #return jsonify({'email': data})
+    return jsonify({'status': 200})
 
 # GET /mailbox/email/<email_id:int>/folder
 # Get the folder containing the given email.  Examples of folders include "Inbox", "Archive", "Trash", and "Sent".
-@app.route('/mailbox/email/<int:email_id>/folder', methods=['GET'])
-def get_folder(email_id):
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute('SELECT * FROM emails WHERE email_id = %s', [email_id])
-    data = cur.fetchall()
+@app.route('/mailbox/email/<int:email_id>/<string:folder>', methods=['GET'])
+def get_folder(email_id, folder):
     logger = structlog.get_logger()
-    logger.info(event="email::id::folder::get", email_id=email_id, folder="get")
-    return jsonify({'folder': data})
+    logger.info(event="email::id::folder::get", email_id=email_id, folder=folder)
+    #return jsonify({'folder': data})
+    return jsonify({'status': 200})
 
 
 # GET /mailbox/email/<email_id:int>/labels
@@ -89,43 +83,49 @@ def get_folder(email_id):
 @app.route('/mailbox/email/<int:email_id>/labels',  methods=['GET'])
 def get_json(email_id):
     logger = structlog.get_logger()
-    logger.info(event="email::id::folder::put", email_id=email_id, folder="put")
+    logger.info(event="email::id::labels::get", email_id=email_id)
+    return jsonify({'status': 200})
 
 
 # GET /mailbox/folder/<folder:str>
 # Lists the emails in a given folder.  Returns a list of email_ids.
-@app.route('/mailbox/folder/<str:folder>',  methods=['GET'])
+@app.route('/mailbox/folder/<string:folder>',  methods=['GET'])
 def get_emails(folder):
     logger = structlog.get_logger()
-    logger.info(event="email::folder::str", folder=folder)
+    logger.info(event="email::folder::get", folder=folder)
+    return jsonify({'status': 200})
 
 # GET /mailbox/labels/<label:str>
 # List emails with the given label.  Returns a list of email_ids.
-@app.route('/mailbox/labels/<str:label>',  methods=['GET'])
+@app.route('/mailbox/labels/<string:label>',  methods=['GET'])
 def get_emails_with_label(label):
     logger = structlog.get_logger()
-    logger.info(event="email::label::str", label=label)
+    logger.info(event="email::label::get", label=label)
+    return jsonify({'status': 200})
 
 # PUT /mailbox/email/<email_id:int>/folder/<folder:str>
 # Moves email to the given folder.  Folders include "Inbox", "Archive", "Trash", and "Sent".
-@app.route('/mailbox/email/<int:email_id>/folder/<str:folder>',  methods=['PUT'])
+@app.route('/mailbox/email/<int:email_id>/folder/<string:folder>',  methods=['PUT'])
 def put_email(email_id, folder):
     logger = structlog.get_logger()
     logger.info(event="email::id::folder::put", email_id=email_id, folder=folder)
+    return jsonify({'status': 200})
 
 # PUT /mailbox/email/<email_id:int>/label/<label:str>
 # Mark the given email with the given label. Valid labels include "spam", "read", and "important".
-@app.route('/mailbox/email/<int:email_id>/label/<str:label>',  methods=['PUT'])
+@app.route('/mailbox/email/<int:email_id>/label/<string:label>',  methods=['PUT'])
 def put_email_label(email_id, label):
     logger = structlog.get_logger()
-    logger.info(event="email::id::label::post", email_id=email_id, label=label)
+    logger.info(event="email::id::label::put", email_id=email_id, label=label)
+    return jsonify({'status': 200})
 
 # DELETE /mailbox/email/<email_id:int>/label/<label:str>
 # Remove the given label from the given email. Valid labels include "spam", "read", and "important".
-@app.route('/mailbox/email/<int:email_id>/label/<str:label>',  methods=['PUT'])
+@app.route('/mailbox/email/<int:email_id>/label/<string:label>',  methods=['DELETE'])
 def delete_email_label(email_id, label):
     logger = structlog.get_logger()
     logger.info(event="email::id::label::delete", email_id=email_id, label=label)
+    return jsonify({'status': 200})
 
 
 if __name__ == '__main__':
