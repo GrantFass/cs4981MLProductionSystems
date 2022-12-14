@@ -5,7 +5,6 @@ import os
 from dotenv import load_dotenv
 import psycopg2
 import structlog
-import logging
 
 load_dotenv()
 
@@ -62,76 +61,77 @@ def post():
 
 # GET /mailbox/email/<email_id:int>
 # Returns a JSON object with the key "email" and an associated value of a String containing the entire email text
-@app.route('/mailbox/email/<int:email_id>')
+@app.route('/mailbox/email/<int:email_id>',  methods=['GET'])
 def get_email(email_id):
-    with open("log_file.json", "wt", encoding="utf-8") as log_fl:
-        structlog.configure(
-        processors=[structlog.processors.TimeStamper(fmt="iso"),
-        structlog.processors.JSONRenderer()],
-        logger_factory=structlog.WriteLoggerFactory(file=log_fl))
-        logger = structlog.get_logger()
-        logger.info(event="email::id::folder::put", email_id=email_id)
-    # structlog.stdlib.recreate_defaults(log_level=None)
-    # structlog.dev.ConsoleRenderer(colors=False)
-    # logging.basicConfig(format="%(message)s", filename='log_file.json', encoding='utf-8', level=logging.INFO)
-    #logger.info(event="email::id::put", email_id=email_id)
-    return jsonify({'status': 200})
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM emails WHERE email_id = %s', [email_id])
+    data = cur.fetchall()
+    logger = structlog.get_logger()
+    logger.info(event="email::id", email_id=email_id)
+    return jsonify({'email': data})
 
 # GET /mailbox/email/<email_id:int>/folder
 # Get the folder containing the given email.  Examples of folders include "Inbox", "Archive", "Trash", and "Sent".
-@app.route('/mailbox/email/')
-def get_folder():
+@app.route('/mailbox/email/<int:email_id>/folder', methods=['GET'])
+def get_folder(email_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM emails WHERE email_id = %s', [email_id])
+    data = cur.fetchall()
     logger = structlog.get_logger()
-    logger.info(event="email::id::folder::put", email_id=email_id, folder=folder)
+    logger.info(event="email::id::folder::get", email_id=email_id, folder="get")
+    return jsonify({'folder': data})
+
 
 # GET /mailbox/email/<email_id:int>/labels
 # Returns a JSON object with the fields "email_id" and "labels".  The value for labels is a list of strings.  Valid labels include "spam", "read", and "important".  No label may be repeated.
-@app.route('/mailbox/email/')
-def get_json():
+@app.route('/mailbox/email/<int:email_id>/labels',  methods=['GET'])
+def get_json(email_id):
     logger = structlog.get_logger()
-    logger.info(event="email::id::folder::put", email_id=email_id, folder=folder)
+    logger.info(event="email::id::folder::put", email_id=email_id, folder="put")
 
 
 # GET /mailbox/folder/<folder:str>
 # Lists the emails in a given folder.  Returns a list of email_ids.
-@app.route('/mailbox/email/')
-def get_emails():
+@app.route('/mailbox/folder/<str:folder>',  methods=['GET'])
+def get_emails(folder):
     logger = structlog.get_logger()
-    logger.info(event="email::id::folder::put", email_id=email_id, folder=folder)
+    logger.info(event="email::folder::str", folder=folder)
 
 # GET /mailbox/labels/<label:str>
 # List emails with the given label.  Returns a list of email_ids.
-@app.route('/mailbox/email/')
-def get_emails_with_label():
+@app.route('/mailbox/labels/<str:label>',  methods=['GET'])
+def get_emails_with_label(label):
     logger = structlog.get_logger()
-    logger.info(event="email::id::folder::put", email_id=email_id, folder=folder)
+    logger.info(event="email::label::str", label=label)
 
 # PUT /mailbox/email/<email_id:int>/folder/<folder:str>
 # Moves email to the given folder.  Folders include "Inbox", "Archive", "Trash", and "Sent".
-@app.route('/mailbox/email/')
-def put_email():
+@app.route('/mailbox/email/<int:email_id>/folder/<str:folder>',  methods=['PUT'])
+def put_email(email_id, folder):
     logger = structlog.get_logger()
     logger.info(event="email::id::folder::put", email_id=email_id, folder=folder)
 
 # PUT /mailbox/email/<email_id:int>/label/<label:str>
 # Mark the given email with the given label. Valid labels include "spam", "read", and "important".
-@app.route('/mailbox/email/')
-def put_email_label():
+@app.route('/mailbox/email/<int:email_id>/label/<str:label>',  methods=['PUT'])
+def put_email_label(email_id, label):
     logger = structlog.get_logger()
-    logger.info(event="email::id::folder::put", email_id=email_id, folder=folder)
+    logger.info(event="email::id::label::post", email_id=email_id, label=label)
 
 # DELETE /mailbox/email/<email_id:int>/label/<label:str>
 # Remove the given label from the given email. Valid labels include "spam", "read", and "important".
-@app.route('/mailbox/email/')
-def delete_email_label():
+@app.route('/mailbox/email/<int:email_id>/label/<str:label>',  methods=['PUT'])
+def delete_email_label(email_id, label):
     logger = structlog.get_logger()
-    logger.info(event="email::id::folder::put", email_id=email_id, folder=folder)
+    logger.info(event="email::id::label::delete", email_id=email_id, label=label)
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8888)
     with open("log_file.json", "wt", encoding="utf-8") as log_fl:
         structlog.configure(
-        processors=[structlog.processors.TimeStamp(fmt="iso"),
+        processors=[structlog.processors.TimeStamper(fmt="iso"),
         structlog.processors.JSONRenderer()],
         logger_factory=structlog.WriteLoggerFactory(file=log_fl))
+        app.run(debug=True, port=8888)
