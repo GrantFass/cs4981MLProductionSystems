@@ -49,7 +49,7 @@ def get_emails(folder):
 
 # GET /mailbox/labels/<label:str>
 # List emails with the given label.  Returns a list of email_ids.
-@app.route('/mailbox/labels/<string:label>',  methods=['GET'])
+@app.route('/mailbox/label/<string:label>',  methods=['GET'])
 def get_emails_with_label(label):
     logger = structlog.get_logger()
     logger.info(event="email::label::get", label=label)

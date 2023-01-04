@@ -1,0 +1,101 @@
+{"email_id": 1, "event": "email::id::labels::get", "timestamp": "2023-01-04T18:40:46.925471Z"}
+{"email_id": 1, "event": "email::id::labels::get", "timestamp": "2023-01-04T18:40:48.991339Z"}
+{"email_id": 1, "folder": "folder", "event": "email::id::folder::get", "timestamp": "2023-01-04T18:40:51.035293Z"}
+{"email_id": 1, "label": "spam", "event": "email::id::label::put", "timestamp": "2023-01-04T18:40:53.095478Z"}
+{"email_id": 2, "label": "read", "event": "email::id::label::put", "timestamp": "2023-01-04T18:40:57.216124Z"}
+{"email_id": 2, "event": "email::id::labels::get", "timestamp": "2023-01-04T18:40:59.272195Z"}
+{"folder": "Inbox", "event": "email::folder::get", "timestamp": "2023-01-04T18:41:01.322869Z"}
+{"label": "read", "event": "email::label::get", "timestamp": "2023-01-04T18:41:03.369819Z"}
+{"email_id": 2, "event": "email::id::labels::get", "timestamp": "2023-01-04T18:41:05.393659Z"}
+{"email_id": 3, "folder": "folder", "event": "email::id::folder::get", "timestamp": "2023-01-04T18:41:09.491778Z"}
+{"label": "read", "event": "email::label::get", "timestamp": "2023-01-04T18:41:11.543187Z"}
+{"folder": "Inbox", "event": "email::folder::get", "timestamp": "2023-01-04T18:41:13.575576Z"}
+{"email_id": 3, "folder": "folder", "event": "email::id::folder::get", "timestamp": "2023-01-04T18:41:15.619122Z"}
+{"email_id": 3, "label": "spam", "event": "email::id::label::put", "timestamp": "2023-01-04T18:41:17.685444Z"}
+{"email_id": 4, "label": "important", "event": "email::id::label::delete", "timestamp": "2023-01-04T18:41:21.814530Z"}
+{"email_id": 4, "event": "email::id::get", "timestamp": "2023-01-04T18:41:23.861008Z"}
+{"email_id": 4, "label": "important", "event": "email::id::label::delete", "timestamp": "2023-01-04T18:41:25.885729Z"}
+{"email_id": 4, "label": "spam", "event": "email::id::label::put", "timestamp": "2023-01-04T18:41:27.925892Z"}
+{"email_id": 5, "label": "important", "event": "email::id::label::delete", "timestamp": "2023-01-04T18:41:32.032319Z"}
+{"email_id": 5, "folder": "Archive", "event": "email::id::folder::put", "timestamp": "2023-01-04T18:41:34.084995Z"}
+{"label": "read", "event": "email::label::get", "timestamp": "2023-01-04T18:41:36.121183Z"}
+{"email_id": 5, "label": "important", "event": "email::id::label::delete", "timestamp": "2023-01-04T18:41:38.168953Z"}
+{"email_id": 5, "label": "spam", "event": "email::id::label::put", "timestamp": "2023-01-04T18:41:40.195201Z"}
+{"email_id": 6, "folder": "folder", "event": "email::id::folder::get", "timestamp": "2023-01-04T18:41:44.339909Z"}
+{"email_id": 6, "label": "read", "event": "email::id::label::put", "timestamp": "2023-01-04T18:41:46.371509Z"}
+{"email_id": 6, "label": "important", "event": "email::id::label::delete", "timestamp": "2023-01-04T18:41:48.406143Z"}
+{"email_id": 6, "folder": "folder", "event": "email::id::folder::get", "timestamp": "2023-01-04T18:41:50.446301Z"}
+{"email_id": 6, "folder": "Archive", "event": "email::id::folder::put", "timestamp": "2023-01-04T18:41:52.484538Z"}
+{"email_id": 6, "label": "spam", "event": "email::id::label::put", "timestamp": "2023-01-04T18:41:54.530737Z"}
+{"email_id": 7, "folder": "Archive", "event": "email::id::folder::put", "timestamp": "2023-01-04T18:41:58.637761Z"}
+{"email_id": 7, "event": "email::id::labels::get", "timestamp": "2023-01-04T18:42:00.677253Z"}
+{"email_id": 7, "label": "important", "event": "email::id::label::delete", "timestamp": "2023-01-04T18:42:02.718939Z"}
+{"folder": "Inbox", "event": "email::folder::get", "timestamp": "2023-01-04T18:42:04.767417Z"}
+{"email_id": 7, "label": "spam", "event": "email::id::label::put", "timestamp": "2023-01-04T18:42:06.803677Z"}
+{"email_id": 8, "folder": "folder", "event": "email::id::folder::get", "timestamp": "2023-01-04T18:42:10.929734Z"}
+{"label": "read", "event": "email::label::get", "timestamp": "2023-01-04T18:42:12.990509Z"}
+{"email_id": 8, "folder": "Archive", "event": "email::id::folder::put", "timestamp": "2023-01-04T18:42:15.025293Z"}
+{"email_id": 8, "event": "email::id::labels::get", "timestamp": "2023-01-04T18:42:17.084010Z"}
+{"email_id": 8, "label": "spam", "event": "email::id::label::put", "timestamp": "2023-01-04T18:42:19.141081Z"}
+{"email_id": 9, "folder": "folder", "event": "email::id::folder::get", "timestamp": "2023-01-04T18:42:23.241409Z"}
+{"email_id": 9, "event": "email::id::labels::get", "timestamp": "2023-01-04T18:42:25.273823Z"}
+{"email_id": 9, "folder": "folder", "event": "email::id::folder::get", "timestamp": "2023-01-04T18:42:27.316209Z"}
+{"email_id": 9, "label": "read", "event": "email::id::label::put", "timestamp": "2023-01-04T18:42:29.353127Z"}
+{"folder": "Inbox", "event": "email::folder::get", "timestamp": "2023-01-04T18:42:31.408333Z"}
+{"email_id": 9, "event": "email::id::labels::get", "timestamp": "2023-01-04T18:42:33.471772Z"}
+{"email_id": 10, "label": "important", "event": "email::id::label::delete", "timestamp": "2023-01-04T18:42:37.580744Z"}
+{"email_id": 10, "folder": "folder", "event": "email::id::folder::get", "timestamp": "2023-01-04T18:42:39.614817Z"}
+{"label": "read", "event": "email::label::get", "timestamp": "2023-01-04T18:42:41.671560Z"}
+{"email_id": 10, "label": "spam", "event": "email::id::label::put", "timestamp": "2023-01-04T18:42:43.706446Z"}
+{"email_id": 11, "label": "important", "event": "email::id::label::delete", "timestamp": "2023-01-04T18:42:47.839013Z"}
+{"email_id": 11, "label": "important", "event": "email::id::label::delete", "timestamp": "2023-01-04T18:42:49.910571Z"}
+{"email_id": 11, "label": "read", "event": "email::id::label::put", "timestamp": "2023-01-04T18:42:51.941785Z"}
+{"email_id": 11, "label": "spam", "event": "email::id::label::put", "timestamp": "2023-01-04T18:42:53.986256Z"}
+{"email_id": 12, "event": "email::id::labels::get", "timestamp": "2023-01-04T18:42:58.067639Z"}
+{"email_id": 12, "event": "email::id::labels::get", "timestamp": "2023-01-04T18:43:00.136014Z"}
+{"email_id": 12, "label": "spam", "event": "email::id::label::put", "timestamp": "2023-01-04T18:43:02.190683Z"}
+{"folder": "Inbox", "event": "email::folder::get", "timestamp": "2023-01-04T18:43:06.320472Z"}
+{"label": "read", "event": "email::label::get", "timestamp": "2023-01-04T18:43:08.388873Z"}
+{"email_id": 13, "label": "important", "event": "email::id::label::delete", "timestamp": "2023-01-04T18:43:10.454165Z"}
+{"email_id": 13, "event": "email::id::labels::get", "timestamp": "2023-01-04T18:43:12.503145Z"}
+{"email_id": 13, "label": "important", "event": "email::id::label::delete", "timestamp": "2023-01-04T18:43:14.545420Z"}
+{"email_id": 13, "event": "email::id::get", "timestamp": "2023-01-04T18:43:16.595800Z"}
+{"email_id": 13, "label": "spam", "event": "email::id::label::put", "timestamp": "2023-01-04T18:43:18.622512Z"}
+{"email_id": 14, "label": "read", "event": "email::id::label::put", "timestamp": "2023-01-04T18:43:22.750396Z"}
+{"folder": "Inbox", "event": "email::folder::get", "timestamp": "2023-01-04T18:43:24.791221Z"}
+{"email_id": 14, "label": "spam", "event": "email::id::label::put", "timestamp": "2023-01-04T18:43:26.829162Z"}
+{"email_id": 15, "folder": "folder", "event": "email::id::folder::get", "timestamp": "2023-01-04T18:43:30.969864Z"}
+{"label": "read", "event": "email::label::get", "timestamp": "2023-01-04T18:43:32.995786Z"}
+{"email_id": 15, "event": "email::id::labels::get", "timestamp": "2023-01-04T18:43:35.051423Z"}
+{"email_id": 15, "event": "email::id::labels::get", "timestamp": "2023-01-04T18:43:37.093046Z"}
+{"email_id": 15, "folder": "Archive", "event": "email::id::folder::put", "timestamp": "2023-01-04T18:43:39.148116Z"}
+{"email_id": 15, "label": "important", "event": "email::id::label::delete", "timestamp": "2023-01-04T18:43:41.199264Z"}
+{"email_id": 15, "event": "email::id::labels::get", "timestamp": "2023-01-04T18:43:43.234121Z"}
+{"email_id": 15, "label": "spam", "event": "email::id::label::put", "timestamp": "2023-01-04T18:43:45.278436Z"}
+{"email_id": 16, "folder": "Archive", "event": "email::id::folder::put", "timestamp": "2023-01-04T18:43:49.411583Z"}
+{"email_id": 16, "label": "read", "event": "email::id::label::put", "timestamp": "2023-01-04T18:43:51.468996Z"}
+{"email_id": 16, "folder": "folder", "event": "email::id::folder::get", "timestamp": "2023-01-04T18:43:53.508615Z"}
+{"email_id": 16, "event": "email::id::get", "timestamp": "2023-01-04T18:43:55.569739Z"}
+{"email_id": 16, "folder": "folder", "event": "email::id::folder::get", "timestamp": "2023-01-04T18:43:57.610328Z"}
+{"email_id": 16, "label": "important", "event": "email::id::label::delete", "timestamp": "2023-01-04T18:43:59.656867Z"}
+{"email_id": 16, "event": "email::id::get", "timestamp": "2023-01-04T18:44:01.689571Z"}
+{"email_id": 16, "event": "email::id::get", "timestamp": "2023-01-04T18:44:03.717688Z"}
+{"email_id": 16, "folder": "Archive", "event": "email::id::folder::put", "timestamp": "2023-01-04T18:44:05.760100Z"}
+{"email_id": 16, "event": "email::id::labels::get", "timestamp": "2023-01-04T18:44:07.800723Z"}
+{"email_id": 16, "label": "spam", "event": "email::id::label::put", "timestamp": "2023-01-04T18:44:09.844074Z"}
+{"email_id": 17, "folder": "folder", "event": "email::id::folder::get", "timestamp": "2023-01-04T18:44:13.971846Z"}
+{"email_id": 17, "label": "read", "event": "email::id::label::put", "timestamp": "2023-01-04T18:44:16.021548Z"}
+{"email_id": 17, "folder": "folder", "event": "email::id::folder::get", "timestamp": "2023-01-04T18:44:18.060852Z"}
+{"email_id": 17, "label": "read", "event": "email::id::label::put", "timestamp": "2023-01-04T18:44:20.104304Z"}
+{"label": "read", "event": "email::label::get", "timestamp": "2023-01-04T18:44:22.167882Z"}
+{"email_id": 18, "folder": "folder", "event": "email::id::folder::get", "timestamp": "2023-01-04T18:44:26.293100Z"}
+{"email_id": 18, "folder": "folder", "event": "email::id::folder::get", "timestamp": "2023-01-04T18:44:28.320004Z"}
+{"label": "read", "event": "email::label::get", "timestamp": "2023-01-04T18:44:30.350153Z"}
+{"label": "read", "event": "email::label::get", "timestamp": "2023-01-04T18:44:32.401155Z"}
+{"email_id": 18, "label": "spam", "event": "email::id::label::put", "timestamp": "2023-01-04T18:44:34.457886Z"}
+{"folder": "Inbox", "event": "email::folder::get", "timestamp": "2023-01-04T18:44:38.561561Z"}
+{"folder": "Inbox", "event": "email::folder::get", "timestamp": "2023-01-04T18:44:40.604277Z"}
+{"email_id": 19, "event": "email::id::get", "timestamp": "2023-01-04T18:44:42.653008Z"}
+{"email_id": 19, "event": "email::id::labels::get", "timestamp": "2023-01-04T18:44:44.682143Z"}
+{"email_id": 19, "label": "spam", "event": "email::id::label::put", "timestamp": "2023-01-04T18:44:46.732055Z"}
+{"folder": "Inbox", "event": "email::folder::get", "timestamp": "2023-01-04T18:44:50.842302Z"}
