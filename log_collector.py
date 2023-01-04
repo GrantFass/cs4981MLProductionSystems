@@ -6,9 +6,10 @@ from dotenv import load_dotenv
 import json
 from datetime import datetime, timedelta
 from time import sleep
+from sys import argv
 
 load_dotenv()
-diff = 1 # TODO: Read from cmd
+diff = int(argv[1])
 
 s3_target = boto3.resource('s3', 
     endpoint_url=os.getenv('ENDPOINT_URL'),
@@ -26,14 +27,13 @@ while True:
         sleep(1)
         
     tail = Pygtail(os.getenv('LOG_PATH'), save_on_end=True, copytruncate=False)
-    temp = []
+    temp_str = ""
     for line, offset in tail.with_offsets():
         j = json.loads(line)
-        temp.append(j)
-    if temp:
-        temp = json.dumps(temp, default = lambda x: x.__dict__)
-        
+        temp_str += json.dumps(j) + "\n"
+    if temp_str:
+        print(temp_str)
         log_name = "log_file_%s.json" % datetime.now().strftime("%Y%m%d-%H%M%S")
-        s3_target.Bucket('log-files').put_object(Key=log_name, Body=json.dumps(temp))
+        s3_target.Bucket('log-files').put_object(Key=log_name, Body=temp_str)
     #tail.write_offset_to_file(count)
 
