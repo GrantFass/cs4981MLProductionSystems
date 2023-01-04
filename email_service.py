@@ -7,8 +7,6 @@ import psycopg2
 
 load_dotenv()
 
-idx = 0
-
 def get_db_connection():
     host=os.getenv('POSTGRES_HOST')
     database=os.getenv('POSTGRES_DATABASE')
@@ -35,7 +33,7 @@ conn = get_db_connection()
 
 @app.route('/email', methods=['POST'])#, methods=['POST']
 def post():
-    global idx, conn
+    global conn
     cur = conn.cursor()
     data = request.data.decode('utf-8')
     # print(data)
@@ -52,11 +50,11 @@ def post():
         "body": user_body
     }
     json_email_object = json.dumps(email_object)
-    cur.execute('INSERT INTO emails (received_timestamp, email_object) VALUES (%s, %s);', (timestamp, json_email_object))
+    cur.execute('INSERT INTO emails (received_timestamp, email_object) VALUES (%s, %s) RETURNING email_id;', (timestamp, json_email_object))
+    row_id = cur.fetchone()[0]
     conn.commit()
     cur.close()
-    idx += 1 # TODO: fixme
-    return jsonify({'email_id': idx})
+    return jsonify({'email_id': row_id})
 
 
 if __name__ == '__main__':
