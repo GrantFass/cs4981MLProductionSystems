@@ -1,6 +1,7 @@
 # folders
 email_json_dataset1/
 .idea
+BatchDataPipelineMLProdSys/null
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
