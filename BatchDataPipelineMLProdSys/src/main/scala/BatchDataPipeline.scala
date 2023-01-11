@@ -1,5 +1,9 @@
 import org.apache.spark.sql.SparkSession
 
+import java.util.Properties
+
+import java.util
+
 object BatchDataPipeline {
 
   def extractWords(document: String): Seq[String] = {
@@ -20,111 +24,94 @@ object BatchDataPipeline {
       .builder
       // set number of cores to use in []
       .master("local[4]")
-      .appName("AssignDocumentIDsExample")
+      .appName("BatchDataPipeline")
       .getOrCreate()
 
     // disable INFO log output from this point forward
     spark.sparkContext.setLogLevel("ERROR")
 
+    //<editor-fold desc="Read Spam Email Classification From Log File">
     // this is needed to allow the map function below
     // by providing an encoder
     import spark.implicits._
 
+    // read in the specified document
     val documents = spark.read
-      // read each file as a string instead
-      // of each line
-      .option("wholetext", true)
+      // The below argument specifies reading the entire document as a string instead of line by line
+//      .option("wholetext", true)
       .textFile(
-        "20news-18828/alt.atheism",
-        "20news-18828/comp.graphics",
-        "20news-18828/comp.os.ms-windows.misc",
-        "20news-18828/comp.sys.ibm.pc.hardware",
-        "20news-18828/comp.sys.mac.hardware",
-        "20news-18828/comp.windows.x",
-        "20news-18828/misc.forsale",
-        "20news-18828/rec.autos",
-        "20news-18828/rec.motorcycles",
-        "20news-18828/rec.sport.baseball",
-        "20news-18828/rec.sport.hockey",
-        "20news-18828/sci.crypt",
-        "20news-18828/sci.electronics",
-        "20news-18828/sci.med",
-        "20news-18828/sci.space",
-        "20news-18828/soc.religion.christian",
-        "20news-18828/talk.politics.guns",
-        "20news-18828/talk.politics.mideast",
-        "20news-18828/talk.politics.misc",
-        "20news-18828/talk.religion.misc"
+        "C:\\lwshare\\cs4981MLProdSys\\log_file.json"
       )
 
-    // get the number of documents
+    // get the number of documents. If line by line this is the number of lines.
     // action
     val nDocuments = documents.count()
 
     println(s"Read ${nDocuments} documents")
     println()
 
-    val smallDocuments = documents
+    // Generate the list of all of the lines that contain the word "spam"
+    val spam = documents
       // transformation
-      .filter(doc => doc.length < 100)
-      // action
-      .head(5)
+      .filter(doc => doc.contains("spam"))
 
-    println("The first five documents look like:")
-    for(doc <- smallDocuments) {
-      println(s"${doc}")
-      println("----------------------------------------")
-    }
-    println()
+    // print out the spam lines if you want to check
+//    println("spam emails:");
+//    for (doc <- spam) {
+//      println(s"${doc}")
+//      println("----------------------------------------")
+//    }
+    //</editor-fold>
 
-    // Dataset[String]
-    // transformations -- no actions
-    val documentLengths = documents
-      // function takes a String and returns a
-      // Seq[String].  Map copies the function
-      // to each worker and runs it on the strings
-      // in the partitions on each worker.
-      // Produces a new Dataset[Seq[String]]
-      .map(extractWords)
-      // Apply an anonymous function (lambda) to each
-      // sequence of strings to get the lengths
-      // returns new Dataset[Int]
-      .map(words => words.length)
+    //<editor-fold desc="Retrieve Postgres Emails">
+    // https://github.com/rnowling/spark-examples/blob/main/src/main/scala/SQLDatabaseExample.scala
 
-    // transformation
-    val sorted = documentLengths.sort($"value")
+    // this is needed to allow the map function below
+    // by providing an encoder
+    import spark.implicits._
 
-    // action
-    // number of words in the five shorted documents
-    println("The five shortest documents have these many words:")
-    for(l <- sorted.head(5)) {
-      println(s"\t${l}")
-    }
-    println()
+    // database connection details
+    val url = "jdbc:postgresql://127.0.0.1:5432/email_ingestion"
+    val tableName = "emails"
+    val props = new Properties()
+    props.setProperty("user", "postgres")
+    props.setProperty("password", "5432")
 
-    // action
-    // number of words in the five longest documents
-    println("The five longest documents have these many words:")
-    for (l <- sorted.tail(5)) {
-      println(s"\t${l}")
-    }
-    println()
+    // training_service
+    // railroad-QUAGMIRE-leaf
 
-    val smallestDocuments = documentLengths
-      // transformation
-      .filter(l => l <= 20)
-      // action
-      .count()
+    // read table into DataFrame
+    val tableDf = spark.read
+      .jdbc(url, tableName, props)
 
-    println(s"${smallestDocuments} documents have 20 or fewer words")
+    tableDf.printSchema()
 
-    val largestDocuments = documentLengths
-      // transformation
-      .filter(l => l > 10000)
-      // action
-      .count()
+    tableDf.show()
 
-    println(s"${largestDocuments} documents have 10000 or more words")
+    val count = tableDf.count();
+
+    println(s"There are ${count} rows")
+    //</editor-fold>
+
+
+
+    //<editor-fold desc="Join The Two Datasets">
+
+
+    // spam is the spam list
+    // tableDf is the postgres data
+
+    
+    //</editor-fold>
+
+
+    //<editor-fold desc="Store Labeled Emails In Object Store">
+
+    // temp
+
+
+
+    //</editor-fold>
 
     spark.stop()
   }

@@ -31,6 +31,7 @@ while True:
     for line, offset in tail.with_offsets():
         j = json.loads(line)
         temp_str += json.dumps(j) + "\n"
+        temp_str = temp_str.replace("\\u", "/u")
     if temp_str:
         print(temp_str)
         log_name = "log_file_%s.json" % datetime.now().strftime("%Y%m%d-%H%M%S")

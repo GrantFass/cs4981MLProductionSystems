@@ -49,7 +49,7 @@ def post():
         "subject": user_subject,
         "body": user_body
     }
-    json_email_object = json.dumps(email_object)
+    json_email_object = json.dumps(email_object).replace("\\u", "/u")
     cur.execute('INSERT INTO emails (received_timestamp, email_object) VALUES (%s, %s) RETURNING email_id;', (timestamp, json_email_object))
     row_id = cur.fetchone()[0]
     conn.commit()
