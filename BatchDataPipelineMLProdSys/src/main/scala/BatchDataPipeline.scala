@@ -1,7 +1,8 @@
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.functions.lit
+import org.apache.spark.sql.functions.col
 
 import java.util.Properties
-
 import java.util
 
 object BatchDataPipeline {
@@ -24,7 +25,7 @@ object BatchDataPipeline {
       .builder
       // set number of cores to use in []
       .master("local[4]")
-      .appName("BatchDataPipeline")
+      .appName("BatchDataPipelineMLProdSys")
       .getOrCreate()
 
     // disable INFO log output from this point forward
@@ -40,7 +41,7 @@ object BatchDataPipeline {
       // The below argument specifies reading the entire document as a string instead of line by line
 //      .option("wholetext", true)
       .textFile(
-        "C:\\lwshare\\cs4981MLProdSys\\log_file.json"
+        "C:\\Users\\garciara\\Projects\\cs4981MLProductionSystems\\log_file.json"
       )
 
     // get the number of documents. If line by line this is the number of lines.
@@ -75,16 +76,20 @@ object BatchDataPipeline {
     val tableName = "emails"
     val props = new Properties()
     props.setProperty("user", "postgres")
-    props.setProperty("password", "5432")
+    props.setProperty("password", "secret_password")
 
     // training_service
     // railroad-QUAGMIRE-leaf
 
     // read table into DataFrame
-    val tableDf = spark.read
+    var tableDf = spark.read
       .jdbc(url, tableName, props)
+    tableDf = tableDf.withColumn("spam_label", lit(0))
+    var spam_emails = tableDf.join(spam, "email_id")
 
-    tableDf.printSchema()
+//    tableDf.map(row => {
+//      if(col("")
+//    })
 
     tableDf.show()
 
