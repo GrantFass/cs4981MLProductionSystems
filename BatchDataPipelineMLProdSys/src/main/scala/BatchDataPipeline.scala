@@ -106,8 +106,16 @@ object BatchDataPipeline {
 
     //<editor-fold desc="Store Labeled Emails In Object Store">
 
-    // temp
+    // spam_emails is the data
+    // bucket is joined-out
+    spam_emails.write.mode("overwrite").json("s3a://joined-out/out.json")
 
+//    val documents = spark.read
+//      // The below argument specifies reading the entire document as a string instead of line by line
+//      //      .option("wholetext", true)
+//      .json(
+//        "s3a://log-files/*"
+//      )
 
 
     //</editor-fold>
