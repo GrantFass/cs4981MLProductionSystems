@@ -40,6 +40,8 @@ object BatchDataPipeline {
       .hadoopConfiguration.set("fs.s3a.endpoint", "http://127.0.0.1:9000")
     spark.sparkContext
       .hadoopConfiguration.set("fs.s3a.connection.ssl.enabled", "false")
+//    spark.sparkContext
+//      .hadoopConfiguration.set("hadoop.home.dir", "C:\\lwshare\\hadoopHomeDir")
 
     //<editor-fold desc="Read Spam Email Classification From Log File">
 
@@ -108,7 +110,8 @@ object BatchDataPipeline {
 
     // spam_emails is the data
     // bucket is joined-out
-    spam_emails.write.mode("overwrite").json("s3a://joined-out/out.json")
+    spam_emails.write.mode("overwrite").json("s3a://joined-out/out")
+//    spam_emails.write.mode("overwrite").json("C:\\Users\\fassg\\Downloads\\out.json")
 
 //    val documents = spark.read
 //      // The below argument specifies reading the entire document as a string instead of line by line
@@ -121,5 +124,19 @@ object BatchDataPipeline {
     //</editor-fold>
 
     spark.stop()
+    // the below two lines launch minio and postgres which are necessary to run this file
+    // additionally if you are on windows you will run into hadoop errors. These can be solved in the following steps.
+    // 1. Install hadoop. Since you are on windows I recommend using chocolaty then do cinst hadoop.
+    //     This installs hadoop 3.3.4. It also has the benefit of seeting your enviornment vars for you
+    // 2. Go to this link https://github.com/cdarlint/winutils/tree/master/hadoop-3.2.2/bin and download everything
+    // 3. extract the stuff you downloaded and copy everything in the hadoop-3.2.2/bin folder
+    // 4. go to your hadoop install location locally. This should be under c://hadoop/hadoop-3.3.4
+    // 5. dump the contents of the folder you copied earlier into the bin folder under the directory you just navigated to.
+    // 6. DO NOT replace files with the same name.
+    // 7. Once this finishes copy the hadoop.dll and winutils.exe files
+    // 8. navigate to c://windows/system32 and paste the two files you just copied.
+    // 9. Assuming you prayed to every god you know of and sacrificed your firstborn you may have a 10% chance of it working.
+    // psql -U postgres
+    // minio server minio_data
   }
 }
