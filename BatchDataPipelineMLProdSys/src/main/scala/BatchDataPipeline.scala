@@ -1,6 +1,7 @@
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions.lit
 import org.apache.spark.sql.functions.col
+import org.apache.spark.sql.functions.when
 
 import java.util.Properties
 import java.util
@@ -40,8 +41,8 @@ object BatchDataPipeline {
     val documents = spark.read
       // The below argument specifies reading the entire document as a string instead of line by line
 //      .option("wholetext", true)
-      .textFile(
-        "C:\\Users\\garciara\\Projects\\cs4981MLProductionSystems\\log_file.json"
+      .json(
+        "C:\\lwshare\\cs4981MLProdSys\\log_file.json"
       )
 
     // get the number of documents. If line by line this is the number of lines.
@@ -51,16 +52,22 @@ object BatchDataPipeline {
     println(s"Read ${nDocuments} documents")
     println()
 
+//    println("documents")
+
+//    documents.show(20)
     // Generate the list of all of the lines that contain the word "spam"
     val spam = documents
       // transformation
-      .filter(doc => doc.contains("spam"))
+      .filter(documents("label") === "spam")
+
+//    spam.show(5)
+
 
     // print out the spam lines if you want to check
-//    println("spam emails:");
-//    for (doc <- spam) {
-//      println(s"${doc}")
-//      println("----------------------------------------")
+    //    println("spam emails:");
+    //    for (doc <- spam) {
+    //      println(s"${doc}")
+    //      println("----------------------------------------")
 //    }
     //</editor-fold>
 
@@ -76,7 +83,8 @@ object BatchDataPipeline {
     val tableName = "emails"
     val props = new Properties()
     props.setProperty("user", "postgres")
-    props.setProperty("password", "secret_password")
+//    props.setProperty("password", "secret_password")
+    props.setProperty("password", "5432")
 
     // training_service
     // railroad-QUAGMIRE-leaf
@@ -84,14 +92,38 @@ object BatchDataPipeline {
     // read table into DataFrame
     var tableDf = spark.read
       .jdbc(url, tableName, props)
-    tableDf = tableDf.withColumn("spam_label", lit(0))
-    var spam_emails = tableDf.join(spam, "email_id")
+//    tableDf = tableDf.withColumn("spam_label", lit(0))
+    println("spam table:")
+    spam.show(5)
+
+//    var spam_emails = tableDf.join(spam, "email_id")
+    // need left outer join
+
+    // the first below line is the one that is from the slides but ends up duplicating the email_id col.
+//    var spam_emails = tableDf.join(spam, tableDf("email_id")===spam("email_id"), "left_outer")
+    var spam_emails = tableDf.join(spam, Seq("email_id"), "left_outer")
+
+
+//    spam_emails = when(spam_emails("label") === "spam", "spam").otherwise("ham")
+//    spam_emails.select(col("*"), when(col("label") === "spam", "spam").otherwise("ham"))
+    spam_emails = spam_emails.na.fill("ham", Array("label"))
+
+//    var spam_emails = tableDf.join(spam, "email_id", "left_outer")
+//    var df1 = tableDf
+//    var df2 = spam
+//    df1.join(df2,
+//      df1("email_id") == df2("email_id"),
+//      "left_outer")
+
+
+    println(spam_emails)
+    spam_emails.show(20)
 
 //    tableDf.map(row => {
 //      if(col("")
 //    })
-
-    tableDf.show()
+//    println("tabledf table:")
+//    tableDf.show(5)
 
     val count = tableDf.count();
 
@@ -106,7 +138,7 @@ object BatchDataPipeline {
     // spam is the spam list
     // tableDf is the postgres data
 
-    
+
     //</editor-fold>
 
 
