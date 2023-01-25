@@ -1,6 +1,29 @@
 # CS 4981 ML Production Systems Project 4
 # File is used for Offline Model Development and Prediction Service
 
+import datetime
+import json
+import os
+import boto3
+from dotenv import load_dotenv
+from datetime import datetime
+from flask import Flask, request, jsonify
+from botocore.errorfactory import ClientError
+import structlog  # for event logging
+
+# create the flask app for the rest endpoints
+app = Flask(__name__)
+
+# load the environment files
+load_dotenv()
+
+
+# set up the structured logging file
+with open("log_file.json", "wt", encoding="utf-8") as log_fl:
+    structlog.configure(
+        processors=[structlog.processors.TimeStamper(fmt="iso"),
+                    structlog.processors.JSONRenderer()],
+        logger_factory=structlog.WriteLoggerFactory(file=log_fl))
 
 # Import from MinIO
 # set up the connection to the S3 object store. Login properties are read from the environment file
@@ -64,3 +87,28 @@ def check_for_file_s3(file_name: str, bucket_name="joined-out"):
         return s3_resource.Object(bucket_name, file_name).content_length
     except ClientError:
         return -1
+    
+    
+def run_flask():
+    with open("log_file.json", "wt", encoding="utf-8") as log_fl:
+        structlog.configure(
+            processors=[structlog.processors.TimeStamper(fmt="iso"),
+                        structlog.processors.JSONRenderer()],
+            logger_factory=structlog.WriteLoggerFactory(file=log_fl))
+        app.run(debug=True, port=8844)
+       
+        
+@app.route('', methods=['GET'])
+def get_new_user():
+    resp = {}
+    logger = structlog.get_logger()
+    logger.info(event='fb::auth::new', uuid=uid)
+    return resp
+
+if __name__ == '__main__':
+
+    # print ID of current process
+    print("ID of process running main program: {}".format(os.getpid()))
+
+    run_flask()
+    
