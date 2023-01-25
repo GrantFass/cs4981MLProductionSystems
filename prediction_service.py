@@ -218,43 +218,25 @@ def offline_model():
     if DEBUG: print(train_y.shape)
     if DEBUG: print(train_x.shape)
     
-    # Perform Quick Test
-    
+    # prepare the data by running the count vectorizer and tsvd. 
+    # Want Tfidf eventually. Also want to use other data than just body
     vectorizer = CountVectorizer(binary=True)
-    
-    # x_train = vectorizer.fit_transform(train[training_targets])
-    # x_validate = vectorizer.fit_transform(validation[training_targets])
     vect = TruncatedSVD()
-    # truncated = vec.fit_transform(x)
-    
-    # # x_train = train.copy()[['to', 'from', 'body', 'subject']]
-    # # y_train = train.copy()['label']
-    # # x_test = validation.copy()[['to', 'from', 'body', 'subject']]
-    # # y_test = validation.copy()['label']['to', 'from', 'body', 'subject']]
-    
-    # TODO: change to pipeline
-    
-    
-    # train_vectorizer = vectorizer.fit_transform(x)
-    # x_train = vec.fit_transform(train_vectorizer)
-    # y_train = y
-    
-    # validation_vectorizer = vectorizer.fit_transform(validation_x)
-    # x_test = vec.fit_transform(validation_vectorizer)
-    # y_test = validation_yvectorizer = CountVectorizer(binary=True, min_df=10)
-    
-    
     x_train = vect.fit_transform(vectorizer.fit_transform(x['body']))
     y_train = y
-    x_test = vect.fit_transform(vectorizer.fit_transform(validation_x['body']))
-    y_test = validation_y
-    
+    x_valid = vect.fit_transform(vectorizer.fit_transform(validation_x['body']))
+    y_valid = validation_y
+    x_test = vect.fit_transform(vectorizer.fit_transform(test_x['body']))
+    y_test = test_y
     print(x_train.shape)
     print(y_train.shape)
+    
+    # gridsearch models
     
     clf = svm.SVC(kernel='linear')
     clf.fit(x_train, y_train)
     y_pred = clf.predict(x_test)
+    # y_pred_prob = clf.predict_proba(x_test)
     y_decision = clf.decision_function(x_test)
     # print("Accuracy: %.2f" % (metrics.accuracy_score(y_test, y_pred)))
     # print("Precision: %.2f" % (metrics.precision_score(y_test, y_pred, average='weighted', zero_division=0)))
