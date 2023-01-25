@@ -10,6 +10,7 @@ from datetime import datetime
 from flask import Flask, request, jsonify
 from botocore.errorfactory import ClientError
 import structlog  # for event logging
+import pandas as pd
 
 # create the flask app for the rest endpoints
 app = Flask(__name__)
@@ -80,6 +81,33 @@ def read_from_s3_iter(file_name: str, bucket_name="joined-out"):
         print("ERROR KEY NOT FOUND")
         return -1
 
+def read_from_s3_bucket(file_name: str, bucket_name="joined-out"):
+    # read all the files in the bucket
+    bucket = s3_resource.Bucket(bucket_name)
+    found = False
+    data = ""
+    for obj in bucket.objects.all():
+        key = obj.key
+        if file_name in str(key):
+            body = obj.get()['Body'].read()
+            
+            if isinstance(body, bytes):
+                body = body.decode()
+            elif not isinstance(body, str):
+                body = str(body)
+                
+            print("%s : length = %s" % (key, len(body)))
+                
+            data += body
+            # data = body
+            # data.append(body)
+            found = True
+    if found:
+        return data
+    else:
+        print("ERROR KEY NOT FOUND")
+        return -1
+
 
 def check_for_file_s3(file_name: str, bucket_name="joined-out"):
     # return s3_client.head_object(Bucket=bucket_name, Key=file_name)['ContentLength']
@@ -98,17 +126,62 @@ def run_flask():
         app.run(debug=True, port=8844)
        
         
-@app.route('', methods=['GET'])
-def get_new_user():
+@app.route('/classify_email', methods=['GET'])
+def classify_email():
     resp = {}
     logger = structlog.get_logger()
     logger.info(event='fb::auth::new', uuid=uid)
     return resp
 
+
+def offline_model():
+    data = read_from_s3_bucket(file_name="out/")
+    # data = json.loads(data)
+    # print(len(data))
+    
+    data = data.split('\n')
+    data = data[0:-1]
+    print(len(data))
+    # print(data[0])
+    
+    out = []
+    for i in range(len(data)):
+        record = json.loads(data[i])
+        record['email_object'] = json.loads(record['email_object'])
+        out.append(record)
+    
+    print(json.dumps(out[0])) # something is broken in the JSON email object body
+    # print(json.loads(data[2]))
+    
+    
+    # # print(data[0])
+    
+    # emails = []
+    # for record in data:
+    #     # f = open(file)
+    #     dictionary = json.loads(record)
+    #     emails.append(dictionary)
+
+    # print("Type: %s of type: %s, Len %d" % (type(emails), type(emails[0]), len(emails)))
+    
+    # # data = ([json.loads(json.dumps(i)) for i in data])
+    # # print(data[0])
+    # # print(type(data[0]))
+    
+    # # data = json.loads(data)
+    # # df = pd.DataFrame(data)
+    
+    # # print(data[0])
+    # df = pd.DataFrame.from_records(data, columns=['email_id', 'received_timestamp', 'email_object', 'event', 'label', 'timestamp'])
+    # # print(df)
+    # print(df.head(2))
+    # print(df.info())
+
+
 if __name__ == '__main__':
 
     # print ID of current process
     print("ID of process running main program: {}".format(os.getpid()))
-
-    run_flask()
+    offline_model()
+    # run_flask()
     
