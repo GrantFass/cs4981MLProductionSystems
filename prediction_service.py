@@ -139,47 +139,27 @@ def classify_email():
 
 
 def offline_model():
+    DEBUG = False
     data = read_from_s3_bucket(file_name="out/")
-    # data = json.loads(data)
-    # print(len(data))
+    
     
     data = data.split('\n')
     data = data[0:-1]
-    print(len(data))
-    # print(data[0])
+    if DEBUG: print(len(data))
     
-    out = []
+    records = []
     for i in range(len(data)):
         record = json.loads(data[i])
         record['email_object'] = json.loads(record['email_object'])
-        out.append(record)
+        records.append(record)
     
-    print(json.dumps(out[0])) # something is broken in the JSON email object body
-    # print(json.loads(data[2]))
-    
-    
-    # # print(data[0])
-    
-    # emails = []
-    # for record in data:
-    #     # f = open(file)
-    #     dictionary = json.loads(record)
-    #     emails.append(dictionary)
+    if DEBUG: print("Type: %s of type: %s, Len %d" % (type(records), type(records[0]), len(records)))
+    if DEBUG: print(json.dumps(records[0]))
 
-    # print("Type: %s of type: %s, Len %d" % (type(emails), type(emails[0]), len(emails)))
+    df = pd.DataFrame(records)
     
-    # # data = ([json.loads(json.dumps(i)) for i in data])
-    # # print(data[0])
-    # # print(type(data[0]))
-    
-    # # data = json.loads(data)
-    # # df = pd.DataFrame(data)
-    
-    # # print(data[0])
-    # df = pd.DataFrame.from_records(data, columns=['email_id', 'received_timestamp', 'email_object', 'event', 'label', 'timestamp'])
-    # # print(df)
-    # print(df.head(2))
-    # print(df.info())
+    if DEBUG: print(df.head(2))
+    if DEBUG: print(df.info())
 
 
 if __name__ == '__main__':
