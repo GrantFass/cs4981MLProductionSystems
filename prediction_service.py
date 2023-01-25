@@ -123,15 +123,19 @@ def run_flask():
             processors=[structlog.processors.TimeStamper(fmt="iso"),
                         structlog.processors.JSONRenderer()],
             logger_factory=structlog.WriteLoggerFactory(file=log_fl))
-        app.run(debug=True, port=8844)
+        app.run(debug=True, port=8888)
        
-        
-@app.route('/classify_email', methods=['GET'])
+
+@app.route('/classify_email', methods=['POST'])
 def classify_email():
-    resp = {}
-    logger = structlog.get_logger()
-    logger.info(event='fb::auth::new', uuid=uid)
-    return resp
+    # get the data from the request
+    data = request.data.decode('utf-8')
+    data = json.loads(data)
+    predicted = data['predicted_class']
+    # log the request
+    structlog.get_logger().info(event="classify_email:predicted_class" , predicted_class=predicted)
+    # return the response
+    return jsonify({'predicted_class': predicted})
 
 
 def offline_model():
