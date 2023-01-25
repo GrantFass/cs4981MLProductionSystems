@@ -11,6 +11,24 @@ from flask import Flask, request, jsonify
 from botocore.errorfactory import ClientError
 import structlog  # for event logging
 import pandas as pd
+import numpy as np
+import os
+import json
+import glob
+from sklearn.feature_extraction.text import CountVectorizer
+import scipy
+from scipy.sparse import csr_matrix
+from sklearn.decomposition import TruncatedSVD
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
+from sklearn.cluster import DBSCAN
+from sklearn import svm
+from sklearn import metrics
+from sklearn.model_selection import StratifiedKFold
+from imblearn.under_sampling import RandomUnderSampler
+from collections import Counter
+from sklearn.feature_extraction.text import TfidfVectorizer as vec
 
 # create the flask app for the rest endpoints
 app = Flask(__name__)
@@ -139,27 +157,112 @@ def classify_email():
 
 
 def offline_model():
-    DEBUG = False
+    DEBUG = True
+    # read in all the data from S3 as one big string
     data = read_from_s3_bucket(file_name="out/")
     
-    
+    # Split the string of data into individual lines. Only works because backslash is escaped in string.
     data = data.split('\n')
     data = data[0:-1]
     if DEBUG: print(len(data))
     
+    # convert every entry in the list to a JSON object. 
     records = []
     for i in range(len(data)):
         record = json.loads(data[i])
         record['email_object'] = json.loads(record['email_object'])
+        record['to'] = record['email_object']['to']
+        record['body'] = record['email_object']['body']
+        record['from'] = record['email_object']['from']
+        record['subject'] = record['email_object']['subject']
         records.append(record)
     
     if DEBUG: print("Type: %s of type: %s, Len %d" % (type(records), type(records[0]), len(records)))
-    if DEBUG: print(json.dumps(records[0]))
+    # if DEBUG: print(json.dumps(records[0]))
 
+    # load the data into a dataframe and set proper types
     df = pd.DataFrame(records)
+    df['received_timestamp'] = pd.to_datetime(df['received_timestamp'], utc=True)
+    df['timestamp'] = pd.to_datetime(df['timestamp'], utc=True)
+    df['label'] = df['label'].astype('category')
+    df['event'] = df['event'].astype('category')
+    df = df.sort_values(by='received_timestamp')
     
-    if DEBUG: print(df.head(2))
+    if DEBUG: print(df.head(5))
     if DEBUG: print(df.info())
+    
+    # Perform Time Based Split
+    n = len(df)
+    train_amt = int(0.7 * n)
+    test_amt = int(0.2 * n)
+    validation_amt = int(0.1 * n)
+    # split the dataframe by slicing based on index. Only works due to being sorted by time.
+    training_targets = ['to', 'from', 'body', 'subject']
+    train_x = df.iloc[0:train_amt][training_targets]
+    train_y = df.iloc[0:train_amt]['label']
+    validation_x = df.iloc[train_amt:validation_amt + train_amt][training_targets]
+    validation_y = df.iloc[train_amt:validation_amt + train_amt]['label']
+    test_x = df.iloc[train_amt + validation_amt:n][training_targets]
+    test_y = df.iloc[train_amt + validation_amt:n]['label']
+    if DEBUG: print("Train Size: %d\tValidation Size: %d\tTest Size: %d" % (len(train_x), len(validation_x), len(test_x)))
+    
+    # Deal with Class Imbalance by undersampling the majority for training
+    y_orig = train_y
+    x_orig = train_x # truncated?
+    if DEBUG: print('Original dataset shape {}'.format(Counter(y_orig)))
+    rus = RandomUnderSampler(random_state=42)
+    x, y = rus.fit_resample(x_orig, y_orig)
+    if DEBUG: print('Resampled dataset shape {}'.format(Counter(y)))
+    train_x = x
+    train_y = pd.DataFrame(y)
+    if DEBUG: print(train_y.shape)
+    if DEBUG: print(train_x.shape)
+    
+    # Perform Quick Test
+    
+    vectorizer = CountVectorizer(binary=True)
+    
+    # x_train = vectorizer.fit_transform(train[training_targets])
+    # x_validate = vectorizer.fit_transform(validation[training_targets])
+    vect = TruncatedSVD()
+    # truncated = vec.fit_transform(x)
+    
+    # # x_train = train.copy()[['to', 'from', 'body', 'subject']]
+    # # y_train = train.copy()['label']
+    # # x_test = validation.copy()[['to', 'from', 'body', 'subject']]
+    # # y_test = validation.copy()['label']['to', 'from', 'body', 'subject']]
+    
+    # TODO: change to pipeline
+    
+    
+    # train_vectorizer = vectorizer.fit_transform(x)
+    # x_train = vec.fit_transform(train_vectorizer)
+    # y_train = y
+    
+    # validation_vectorizer = vectorizer.fit_transform(validation_x)
+    # x_test = vec.fit_transform(validation_vectorizer)
+    # y_test = validation_yvectorizer = CountVectorizer(binary=True, min_df=10)
+    
+    
+    x_train = vect.fit_transform(vectorizer.fit_transform(x['body']))
+    y_train = y
+    x_test = vect.fit_transform(vectorizer.fit_transform(validation_x['body']))
+    y_test = validation_y
+    
+    print(x_train.shape)
+    print(y_train.shape)
+    
+    clf = svm.SVC(kernel='linear')
+    clf.fit(x_train, y_train)
+    y_pred = clf.predict(x_test)
+    y_decision = clf.decision_function(x_test)
+    # print("Accuracy: %.2f" % (metrics.accuracy_score(y_test, y_pred)))
+    # print("Precision: %.2f" % (metrics.precision_score(y_test, y_pred, average='weighted', zero_division=0)))
+    # print("Recall: %.2f" % (metrics.recall_score(y_test, y_pred, average='weighted')))
+    print("ROC_AUC: %.2f" % (metrics.roc_auc_score(y_test, y_decision)))
+    svc_disp = metrics.RocCurveDisplay.from_estimator(clf, x_test, y_test)
+    plt.show()
+        
 
 
 if __name__ == '__main__':
