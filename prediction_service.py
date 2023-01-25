@@ -218,6 +218,16 @@ def offline_model():
     if DEBUG: print(train_y.shape)
     if DEBUG: print(train_x.shape)
     
+    
+    """
+    Performing Text Classification
+    
+    GridSearch Params:
+    CountVectorizer parameters,
+    Model types,
+    Model Hyperparameters
+    """
+    
     # prepare the data by running the count vectorizer and tsvd. 
     # Want Tfidf eventually. Also want to use other data than just body
     vectorizer = CountVectorizer(binary=True)
