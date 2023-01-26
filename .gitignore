@@ -2,6 +2,7 @@
 email_json_dataset1/
 .idea
 BatchDataPipelineMLProdSys/null
+classifier.pkl
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
