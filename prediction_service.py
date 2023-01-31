@@ -39,7 +39,7 @@ load_dotenv()
 
 
 # set up the structured logging file
-with open("log_file.json", "wt", encoding="utf-8") as log_fl:
+with open(os.getenv('PREDICTION_LOG_PATH'), "wt", encoding="utf-8") as log_fl:
     structlog.configure(
         processors=[structlog.processors.TimeStamper(fmt="iso"),
                     structlog.processors.JSONRenderer()],
@@ -132,7 +132,7 @@ def check_for_file_s3(file_name: str, bucket_name="joined-out"):
     
     
 def run_flask():
-    with open("log_file.json", "wt", encoding="utf-8") as log_fl:
+    with open(os.getenv('PREDICTION_LOG_PATH'), "wt", encoding="utf-8") as log_fl:
         structlog.configure(
             processors=[structlog.processors.TimeStamper(fmt="iso"),
                         structlog.processors.JSONRenderer()],

@@ -4,6 +4,11 @@ email_json_dataset1/
 BatchDataPipelineMLProdSys/null
 classifier.pkl
 *.pkl
+mailbox_log_file.json
+prediction_log_file.json
+mailbox_log_file.json.offset
+prediction_log_file.json.offset
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

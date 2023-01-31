@@ -1,11 +1,12 @@
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 import structlog
+import os
 
 load_dotenv()
 
 
-with open("log_file.json", "wt", encoding="utf-8") as log_fl:
+with open(os.getenv('MAILBOX_LOG_PATH'), "wt", encoding="utf-8") as log_fl:
     structlog.configure(
     processors=[structlog.processors.TimeStamper(fmt="iso"),
     structlog.processors.JSONRenderer()],
@@ -81,7 +82,7 @@ def delete_email_label(email_id, label):
 
 
 if __name__ == '__main__':
-    with open("log_file.json", "wt", encoding="utf-8") as log_fl:
+    with open(os.getenv('MAILBOX_LOG_PATH'), "wt", encoding="utf-8") as log_fl:
         structlog.configure(
         processors=[structlog.processors.TimeStamper(fmt="iso"),
         structlog.processors.JSONRenderer()],
