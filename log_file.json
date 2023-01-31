@@ -1,0 +1,1 @@
+{"predicted_class": "array(['spam'], dtype=object)", "event": "classify_email:predicted_class", "timestamp": "2023-01-31T20:53:42.642405Z"}

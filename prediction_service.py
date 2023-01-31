@@ -4,6 +4,7 @@
 import datetime
 import json
 import os
+import pickle
 import boto3
 from dotenv import load_dotenv
 from datetime import datetime
@@ -58,6 +59,15 @@ s3_resource = boto3.resource('s3',
                              verify=False
                              )
 
+s3_client = boto3.client('s3',
+                             endpoint_url=os.getenv('ENDPOINT_URL'),
+                             aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+                             aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
+                             aws_session_token=None,
+                             config=boto3.session.Config(signature_version='s3v4'),
+                             verify=False
+                             )
+
 
 # going to need to add instructions on how to set up minio... Launch args: minio server minio_data
 def send_to_bucket(body: str, log_name="", bucket_name="joined-out"):
@@ -79,52 +89,38 @@ def read_from_s3(file_name: str, bucket_name="joined-out"):
     return data
 
 
-def read_from_s3_iter(file_name: str, bucket_name="joined-out"):
+def read_from_s3_pipelines(file_name: str, bucket_name="joined-out"):
     # https://stackoverflow.com/questions/36205481/read-file-content-from-s3-bucket-with-boto3
     bucket = s3_resource.Bucket(bucket_name)
     # Iterates through all the objects, doing the pagination for you. Each obj
     # is an ObjectSummary, so it doesn't contain the body. You'll need to call
     # get to get the whole body.
-    found = False
-    data = ""
+    pipelines = []
     for obj in bucket.objects.all():
         key = obj.key
         if file_name in str(key):
-            data = obj.get()['Body'].read()
-            print("%s : %s" % (key, data))
-            found = True
-    if found:
-        return data
+            temp = str(key).removeprefix('pipeline_')
+            temp = temp.removesuffix('.pkl')
+            time = datetime.strptime(temp, "%Y%m%d-%H%M%S")
+            # print("file_name: %s\ttime = %s" % (str(key), time))
+            pipelines.append((str(key), time))
+            # data = obj.get()['Body'].read()
+    if pipelines:
+        pipelines = sorted(pipelines, key = lambda x: x[1]) # sort by second item
+        # want to grab last item's filename
+        filename = pipelines[-1][0]
+        # https://python-bloggers.com/2022/07/persisting-data-with-pickle-s3/
+        s3_client.download_file(bucket_name, filename, filename)
+        try:
+            with open(filename, "rb") as file:
+                data = pickle.load(file)
+        except (FileNotFoundError, EOFError):
+            # You'll arrive here on the first iteration.
+            data = None
     else:
         print("ERROR KEY NOT FOUND")
-        return -1
-
-def read_from_s3_bucket(file_name: str, bucket_name="joined-out"):
-    # read all the files in the bucket
-    bucket = s3_resource.Bucket(bucket_name)
-    found = False
-    data = ""
-    for obj in bucket.objects.all():
-        key = obj.key
-        if file_name in str(key):
-            body = obj.get()['Body'].read()
-            
-            if isinstance(body, bytes):
-                body = body.decode()
-            elif not isinstance(body, str):
-                body = str(body)
-                
-            print("%s : length = %s" % (key, len(body)))
-                
-            data += body
-            # data = body
-            # data.append(body)
-            found = True
-    if found:
-        return data
-    else:
-        print("ERROR KEY NOT FOUND")
-        return -1
+        data = None
+    return data
 
 
 def check_for_file_s3(file_name: str, bucket_name="joined-out"):
@@ -144,123 +140,50 @@ def run_flask():
         app.run(debug=True, port=8888)
        
 
-@app.route('/classify_email', methods=['POST'])
+@app.route('/classify', methods=['GET'])
 def classify_email():
+    """
+    Takes a JSON object as payload.  
+    The object contains the key “email” with the value being another object.  
+    The email object should have the key “body” with the value being a String.  
+    The request should return another JSON object with the key 
+    “predicted_class” and a value of “spam” or “ham.”
+    """
+    
+    
+    # Load the most recent pipeline that was trained
+    model = read_from_s3_pipelines("pipeline")
+    print(model)
+    
     # get the data from the request
     data = request.data.decode('utf-8')
     data = json.loads(data)
-    predicted = data['predicted_class']
+    email = data['email'] # email object should have keys 'to', 'from', 'body', and 'subject'
+    
+    # print(email)
+    sample = pd.DataFrame([email])
+    sample['to'] = sample['to_address']
+    sample['from'] = sample['from_address']
+    sample = sample.drop(columns=['label', 'to_address', 'from_address'])
+    
+    # print(sample.info())
+    # print()
+    # print(sample.head())
+    # print()
+    predicted = model.predict(sample)
+    # print(predicted)
+    
     # log the request
     structlog.get_logger().info(event="classify_email:predicted_class" , predicted_class=predicted)
     # return the response
-    return jsonify({'predicted_class': predicted})
-
-
-def offline_model():
-    DEBUG = True
-    # read in all the data from S3 as one big string
-    data = read_from_s3_bucket(file_name="out/")
-    
-    # Split the string of data into individual lines. Only works because backslash is escaped in string.
-    data = data.split('\n')
-    data = data[0:-1]
-    if DEBUG: print(len(data))
-    
-    # convert every entry in the list to a JSON object. 
-    records = []
-    for i in range(len(data)):
-        record = json.loads(data[i])
-        record['email_object'] = json.loads(record['email_object'])
-        record['to'] = record['email_object']['to']
-        record['body'] = record['email_object']['body']
-        record['from'] = record['email_object']['from']
-        record['subject'] = record['email_object']['subject']
-        records.append(record)
-    
-    if DEBUG: print("Type: %s of type: %s, Len %d" % (type(records), type(records[0]), len(records)))
-    # if DEBUG: print(json.dumps(records[0]))
-
-    # load the data into a dataframe and set proper types
-    df = pd.DataFrame(records)
-    df['received_timestamp'] = pd.to_datetime(df['received_timestamp'], utc=True)
-    df['timestamp'] = pd.to_datetime(df['timestamp'], utc=True)
-    df['label'] = df['label'].astype('category')
-    df['event'] = df['event'].astype('category')
-    df = df.sort_values(by='received_timestamp')
-    
-    if DEBUG: print(df.head(5))
-    if DEBUG: print(df.info())
-    
-    # Perform Time Based Split
-    n = len(df)
-    train_amt = int(0.7 * n)
-    test_amt = int(0.2 * n)
-    validation_amt = int(0.1 * n)
-    # split the dataframe by slicing based on index. Only works due to being sorted by time.
-    training_targets = ['to', 'from', 'body', 'subject']
-    train_x = df.iloc[0:train_amt][training_targets]
-    train_y = df.iloc[0:train_amt]['label']
-    validation_x = df.iloc[train_amt:validation_amt + train_amt][training_targets]
-    validation_y = df.iloc[train_amt:validation_amt + train_amt]['label']
-    test_x = df.iloc[train_amt + validation_amt:n][training_targets]
-    test_y = df.iloc[train_amt + validation_amt:n]['label']
-    if DEBUG: print("Train Size: %d\tValidation Size: %d\tTest Size: %d" % (len(train_x), len(validation_x), len(test_x)))
-    
-    # Deal with Class Imbalance by undersampling the majority for training
-    y_orig = train_y
-    x_orig = train_x # truncated?
-    if DEBUG: print('Original dataset shape {}'.format(Counter(y_orig)))
-    rus = RandomUnderSampler(random_state=42)
-    x, y = rus.fit_resample(x_orig, y_orig)
-    if DEBUG: print('Resampled dataset shape {}'.format(Counter(y)))
-    train_x = x
-    train_y = pd.DataFrame(y)
-    if DEBUG: print(train_y.shape)
-    if DEBUG: print(train_x.shape)
-    
-    
-    """
-    Performing Text Classification
-    
-    GridSearch Params:
-    CountVectorizer parameters,
-    Model types,
-    Model Hyperparameters
-    """
-    
-    # prepare the data by running the count vectorizer and tsvd. 
-    # Want Tfidf eventually. Also want to use other data than just body
-    vectorizer = CountVectorizer(binary=True)
-    vect = TruncatedSVD()
-    x_train = vect.fit_transform(vectorizer.fit_transform(x['body']))
-    y_train = y
-    x_valid = vect.fit_transform(vectorizer.fit_transform(validation_x['body']))
-    y_valid = validation_y
-    x_test = vect.fit_transform(vectorizer.fit_transform(test_x['body']))
-    y_test = test_y
-    print(x_train.shape)
-    print(y_train.shape)
-    
-    # gridsearch models
-    
-    clf = svm.SVC(kernel='linear')
-    clf.fit(x_train, y_train)
-    y_pred = clf.predict(x_test)
-    # y_pred_prob = clf.predict_proba(x_test)
-    y_decision = clf.decision_function(x_test)
-    # print("Accuracy: %.2f" % (metrics.accuracy_score(y_test, y_pred)))
-    # print("Precision: %.2f" % (metrics.precision_score(y_test, y_pred, average='weighted', zero_division=0)))
-    # print("Recall: %.2f" % (metrics.recall_score(y_test, y_pred, average='weighted')))
-    print("ROC_AUC: %.2f" % (metrics.roc_auc_score(y_test, y_decision)))
-    svc_disp = metrics.RocCurveDisplay.from_estimator(clf, x_test, y_test)
-    plt.show()
+    return jsonify({'predicted_class': predicted[0]})
         
-
 
 if __name__ == '__main__':
 
     # print ID of current process
     print("ID of process running main program: {}".format(os.getpid()))
-    offline_model()
-    # run_flask()
+    run_flask()
+    
+    
     
