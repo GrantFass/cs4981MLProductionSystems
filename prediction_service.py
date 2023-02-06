@@ -37,6 +37,9 @@ app = Flask(__name__)
 # load the environment files
 load_dotenv()
 
+# the model used to predict
+model = []
+
 
 # set up the structured logging file
 with open(os.getenv('PREDICTION_LOG_PATH'), "wt", encoding="utf-8") as log_fl:
@@ -132,6 +135,11 @@ def check_for_file_s3(file_name: str, bucket_name="joined-out"):
     
     
 def run_flask():
+    global model
+    # Load the most recent pipeline that was trained
+    model = read_from_s3_pipelines("pipeline")
+    print(model)
+    
     with open(os.getenv('PREDICTION_LOG_PATH'), "wt", encoding="utf-8") as log_fl:
         structlog.configure(
             processors=[structlog.processors.TimeStamper(fmt="iso"),
@@ -149,34 +157,36 @@ def classify_email():
     The request should return another JSON object with the key 
     “predicted_class” and a value of “spam” or “ham.”
     """
-    
-    
-    # Load the most recent pipeline that was trained
-    model = read_from_s3_pipelines("pipeline")
-    print(model)
+    global model
     
     # get the data from the request
     data = request.data.decode('utf-8')
+    # print(data)
     data = json.loads(data)
     email = data['email'] # email object should have keys 'to', 'from', 'body', and 'subject'
     
     # print(email)
     sample = pd.DataFrame([email])
-    sample['to'] = sample['to_address']
-    sample['from'] = sample['from_address']
-    sample = sample.drop(columns=['label', 'to_address', 'from_address'])
+    if 'to_address' in sample.columns:
+        sample['to'] = sample['to_address']
+        sample = sample.drop(columns=['to_address'])
+    if 'from_address' in sample.columns:
+        sample['from'] = sample['from_address']
+        sample = sample.drop(columns=['from_address'])
+    if 'label' in sample.columns:
+        sample = sample.drop(columns=['label'])
     
     # print(sample.info())
     # print()
     # print(sample.head())
     # print()
-    predicted = model.predict(sample)
+    predicted = model.predict(sample)[0]
     # print(predicted)
     
     # log the request
     structlog.get_logger().info(event="classify_email:predicted_class" , predicted_class=predicted)
     # return the response
-    return jsonify({'predicted_class': predicted[0]})
+    return jsonify({'predicted_class': predicted})
         
 
 if __name__ == '__main__':

@@ -9,7 +9,7 @@ from time import sleep
 from sys import argv
 
 load_dotenv()
-diff = 1
+diff = 10
 try:
     diff = int(argv[1])
 except IndexError:
@@ -47,12 +47,15 @@ while True:
     if os.path.exists(mailbox_path):
         tail = Pygtail(mailbox_path, save_on_end=True, copytruncate=False)
         temp_str = ""
+        count = 0
         for line, offset in tail.with_offsets():
             j = json.loads(line)
             temp_str += json.dumps(j) + "\n"
             temp_str = temp_str.replace("\\u", "/u")
+            count += 1
         if temp_str:
-            print(temp_str)
+            # print(temp_str)
+            print("Logging %d records to %s" % (count, mailbox_path))
             log_name = "log_file_%s.json" % datetime.now().strftime("%Y%m%d-%H%M%S")
             s3_target.Bucket('log-files').put_object(Key=log_name, Body=temp_str)
     
@@ -60,12 +63,15 @@ while True:
     if os.path.exists(prediction_path):
         tail = Pygtail(prediction_path, save_on_end=True, copytruncate=False)
         temp_str = ""
+        count = 0
         for line, offset in tail.with_offsets():
             j = json.loads(line)
             temp_str += json.dumps(j) + "\n"
             temp_str = temp_str.replace("\\u", "/u")
+            count += 1
         if temp_str:
-            print(temp_str)
+            # print(temp_str)
+            print("Logging %d records to %s" % (count, prediction_path))
             log_name = "log_file_%s.json" % datetime.now().strftime("%Y%m%d-%H%M%S")
             s3_target.Bucket('prediction-log-files').put_object(Key=log_name, Body=temp_str)
 
